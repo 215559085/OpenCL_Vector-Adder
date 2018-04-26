@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+ConsoleApplication2/ReadMe.txt
+*.pdb
+*.ilk
+*.idb
+*.log
+*.tlog
+*.ipch
+*.db
