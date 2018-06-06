@@ -370,13 +370,13 @@ int main()
 		}
 		else {
 			for (int i = 0; i < DATA_SIZE; i++) {
-				printf("result : %f \n", res[i]);
+				//printf("result : %i \n", res[i]);
 			}
 		}
 
 		float ib = 0;
-		for (int ab = 0; ab < 10000000; ab++) {/////注意，1亿，非自动int64，会错误
-			ib = ib + ab;
+		for (int ab = 0; ab < 100; ab++) {/////注意，1亿，非自动int64，会错误
+			ib =  ab;
 		}
 		printf("result : %f \n", ib);
 		//printf("result : %f \n", res[0]);

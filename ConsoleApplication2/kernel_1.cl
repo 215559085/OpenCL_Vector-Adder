@@ -4,14 +4,14 @@ __kernel void adder(__global const float* a, __global const float* b, __global f
 	float i = 0;
 
 	/////////////////
-	for (int ab = 0; ab < 10000000; ab++) {///////////////1亿会卡屏，10亿会暂时性黑屏
-		i = i + ab;
+	for (int ab = 0; ab < 100; ab++) {///////////////1亿会卡屏，10亿会暂时性黑屏
+		i =  ab;
 	}
 	/////////////////
 
 	result[idx] = a[idx] + b[idx];//////////////////
 
-	printf("STEP_GLOBAL_FINAL f:[%f] \n", i);
+	//printf("STEP_GLOBAL_FINAL f:[%f] \n", i);
 
 
 }
