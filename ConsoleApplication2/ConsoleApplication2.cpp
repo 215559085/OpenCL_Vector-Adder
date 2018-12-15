@@ -8,7 +8,7 @@
 #include <fstream>
 #include <string> 
 //#pragma warning( disable : 4996 )//因在Intel中OpenCL版本为1.2，无法使用Create Command Queque
-#define DATA_SIZE  100
+#define DATA_SIZE  1000
 
 using namespace std;
 
@@ -310,23 +310,23 @@ void Cleanup(cl_context context, cl_command_queue commandQueue,
 int main()
 {
 	cl_platform_id *platforms;
-	
+
 	cl_uint num_platforms;
-	cl_int  err, platform_index = -1,errNum;
+	cl_int  err, platform_index = -1, errNum;
 
 	const char icd_ext[] = "cl_khr_icd";
 
 
-    cl_context context;
-    cl_command_queue cqueue;
+	cl_context context;
+	cl_command_queue cqueue;
 	int platformID = 0;//指定第N+1个设备
 
 	CL_printf_PlatformInformation();
 	int platFormNum = CL_getPlatformNums();
 
-	if (platformID+1 > platFormNum) {
+	if (platformID + 1 > platFormNum) {
 		printf("指定设备不存在");
-			exit(1);
+		exit(1);
 	}
 
 	context = CL_createContextFromPlatfromIDs(platformID);
@@ -335,7 +335,7 @@ int main()
 	cqueue = CL_createCqueue(context);
 
 	cl_kernel adder;
-	adder = CL_createKernel(context, platformID+1, devices, "kernel_1.cl", "adder");//CL_createKernel(context,第N个设备，devices...
+	adder = CL_createKernel(context, platformID + 1, devices, "kernel_1.cl", "adder");//CL_createKernel(context,第N个设备，devices...
 
 
 ////////////创建一堆数据，用于导入kernel
@@ -348,34 +348,35 @@ int main()
 		b[i] = i;
 	}
 	////////////////创建OpenCL设备缓存区块
-		cl_mem cl_a = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * DATA_SIZE, a, NULL);
-		cl_mem cl_b = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * DATA_SIZE, b, NULL);
-		cl_mem cl_res = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_float) * DATA_SIZE, NULL, NULL);
-		//////////////////传递数据
-		clSetKernelArg(adder, 0, sizeof(cl_mem), &cl_a);
-		clSetKernelArg(adder, 1, sizeof(cl_mem), &cl_b);
-		clSetKernelArg(adder, 2, sizeof(cl_mem), &cl_res);
-		//////////////////两项运算参数，目前可知的是globalWorkSize既传入数据大小，localWorkSize既运算维度(相关数学问题)
-		size_t globalWorkSize[1] = { DATA_SIZE };
-		size_t localWorkSize[1] = { 1 };
-		err = clEnqueueNDRangeKernel(cqueue, adder, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
-		if (err < 0) {
-			printf("Culculate Error : clEnqueueNDRangeKernel \n");
-		}
-		//////////////////取出结果
+	cl_mem cl_a = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * DATA_SIZE, a, NULL);
+	cl_mem cl_b = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * DATA_SIZE, b, NULL);
+	cl_mem cl_res = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(cl_float) * DATA_SIZE, NULL, NULL);
+	//////////////////传递数据
+	clSetKernelArg(adder, 0, sizeof(cl_mem), &cl_a);
+	clSetKernelArg(adder, 1, sizeof(cl_mem), &cl_b);
+	clSetKernelArg(adder, 2, sizeof(cl_mem), &cl_res);
+	//////////////////两项运算参数，目前可知的是globalWorkSize既传入数据大小，localWorkSize既运算维度(相关数学问题)
+	size_t globalWorkSize[1] = { DATA_SIZE };
+	size_t localWorkSize[1] = { 8 };
+	err = clEnqueueNDRangeKernel(cqueue, adder, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
 
-		float res2[DATA_SIZE];
+	if (err < 0) {
+		printf("Culculate Error : clEnqueueNDRangeKernel \n");
+	}
+	//////////////////取出结果
+
+	cl_float res2[DATA_SIZE];
 		std::vector<float> res(DATA_SIZE);
 
 		//err = clEnqueueReadBuffer(cqueue, cl_res, CL_TRUE, 0, sizeof(float) * DATA_SIZE, res, 0, NULL, NULL);
-		err = clEnqueueReadBuffer(cqueue, cl_res, CL_TRUE, 1, sizeof(float) * DATA_SIZE, &res[0], 0, 0, 0);
-
+		err = clEnqueueReadBuffer(cqueue, cl_res, CL_TRUE, 0, sizeof(float) * DATA_SIZE, &res2[0], 0, 0, 0);
+		//res2 = (cl_float*)clEnqueueMapBuffer(cqueue, cl_res, CL_TRUE, CL_MAP_READ, 0, DATA_SIZE, 0, NULL, NULL, NULL);
 		if (err < 0) {
 			printf("Culculate Error : clEnqueueReadBuffer \n");
 		}
 		else {
 			for (int i = 0; i < DATA_SIZE; i++) {
-				printf("result : %i \n", res[i]);
+				printf("result : %f \n", res2[i]);
 			}
 		}
 
